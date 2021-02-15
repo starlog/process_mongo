@@ -64,11 +64,11 @@ const TARGET_COLLECTION = 'supercontent_old';
 async.series([
     async.apply(init, mongoConnections),
     async.apply(getList, mongo, processList), // 목록 가져오기, insert와 delete로 구분
-    async.apply(processInsert, mongo, processList), // insert 처리
-    async.apply(processDelete, mongo, processList) // delete 처리
+    async.apply(processDelete, mongo, processList), // delete 처리
+    async.apply(processInsert, mongo, processList) // insert 처리
 ], function (err, result)
 {
-    if (err !== 'done')
+    if (err)
     {
         console.log('Result is ' + err);
     }
@@ -146,11 +146,6 @@ function processInsert(mongo, processList, callback)
                 if (err === 'done-insert')
                 {
                     err = null;
-                }
-                else if (err === 'done-delete')
-                {
-                    err = null;
-                    console.log('All task done.');
                 }
                 else if (err)
                 {
@@ -239,7 +234,11 @@ function processDelete(mongo, processList, callback)
             async.apply(doDeleteTask, mongo, processList),
             (err) =>
             {
-                if (err && err !== 'done')
+                if (err === 'done-delete')
+                {
+                    err = null;
+                }
+                else if (err && err !== 'done')
                 {
                     console.log('processDelete error=' + err);
                 }
@@ -258,7 +257,7 @@ function testDeleteCount(processList, callback)
 {
     if (processList.deleteIndex >= processList.deleteMax)
     {
-        callback('done');
+        callback('done-delete');
     }
     else
     {
